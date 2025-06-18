@@ -1,13 +1,19 @@
 package com.example.servicedb.service;
 
+import com.example.servicedb.dto.FilmDTO;
+import com.example.servicedb.dto.FilmDataDTO;
+import com.example.servicedb.dto.GenreDTO;
 import com.example.servicedb.model.Film;
+import com.example.servicedb.model.Genre;
 import com.example.servicedb.repository.FilmRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -16,32 +22,40 @@ public class FilmService {
 
     private final FilmRepository filmRepository;
 
-    public List<Film> getAllFilms() {
+    @Transactional(readOnly = true)
+    public List<FilmDTO> getAllFilms() {
         log.info("Fetching all films from repository");
         List<Film> films = filmRepository.findAll();
-        log.debug("Retrieved {} films", films.size());
-        return films;
+        List<FilmDTO> filmDTOs = films.stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+        log.debug("Retrieved {} films", filmDTOs.size());
+        return filmDTOs;
     }
 
-    public Optional<Film> getFilmById(Long id) {
+    @Transactional(readOnly = true)
+    public Optional<FilmDTO> getFilmById(Long id) {
         log.info("Fetching film with ID: {}", id);
         Optional<Film> film = filmRepository.findById(id);
         if (film.isPresent()) {
             log.debug("Found film: {}", film.get().getTitle());
+            return Optional.of(convertToDTO(film.get()));
         } else {
             log.warn("Film with ID {} not found", id);
+            return Optional.empty();
         }
-        return film;
     }
 
-    public Film createFilm(Film film) {
+    @Transactional
+    public FilmDTO createFilm(Film film) {
         log.info("Creating film: {}", film.getTitle());
         Film savedFilm = filmRepository.save(film);
         log.debug("Created film with ID: {}", savedFilm.getId());
-        return savedFilm;
+        return convertToDTO(savedFilm);
     }
 
-    public Film updateFilm(Long id, Film filmDetails) {
+    @Transactional
+    public FilmDTO updateFilm(Long id, Film filmDetails) {
         log.info("Updating film with ID: {}", id);
         Film film = filmRepository.findById(id)
                 .orElseThrow(() -> {
@@ -55,12 +69,12 @@ public class FilmService {
         film.setRating(filmDetails.getRating());
         film.setFilmData(filmDetails.getFilmData());
         film.setGenres(filmDetails.getGenres());
-        film.setPersonnel(filmDetails.getPersonnel());
         Film updatedFilm = filmRepository.save(film);
         log.debug("Updated film: {}", updatedFilm.getTitle());
-        return updatedFilm;
+        return convertToDTO(updatedFilm);
     }
 
+    @Transactional
     public void deleteFilm(Long id) {
         log.info("Deleting film with ID: {}", id);
         if (!filmRepository.existsById(id)) {
@@ -69,5 +83,43 @@ public class FilmService {
         }
         filmRepository.deleteById(id);
         log.debug("Deleted film with ID: {}", id);
+    }
+
+    private FilmDTO convertToDTO(Film film) {
+        FilmDTO dto = new FilmDTO();
+        dto.setId(film.getId());
+        dto.setTitle(film.getTitle());
+        dto.setReleaseYear(film.getReleaseYear());
+        dto.setOriginalLanguage(film.getOriginalLanguage());
+        dto.setDuration(film.getDuration());
+        dto.setRating(film.getRating());
+
+        if (film.getFilmData() != null) {
+            FilmDataDTO filmDataDTO = new FilmDataDTO();
+            filmDataDTO.setId(film.getFilmData().getId());
+            filmDataDTO.setRating(film.getFilmData().getRating());
+            filmDataDTO.setBudget(film.getFilmData().getBudget());
+            filmDataDTO.setPoster(film.getFilmData().getPoster());
+            filmDataDTO.setTrailer(film.getFilmData().getTrailer());
+            filmDataDTO.setRevenue(film.getFilmData().getRevenue());
+            dto.setFilmData(filmDataDTO);
+        }
+
+        if (film.getGenres() != null) {
+            List<GenreDTO> genreDTOs = film.getGenres().stream()
+                    .map(this::convertToGenreDTO)
+                    .collect(Collectors.toList());
+            dto.setGenres(genreDTOs);
+        }
+
+        return dto;
+    }
+
+    private GenreDTO convertToGenreDTO(Genre genre) {
+        GenreDTO dto = new GenreDTO();
+        dto.setId(genre.getId());
+        dto.setName(genre.getName());
+        dto.setDescription(genre.getDescription());
+        return dto;
     }
 }
