@@ -1,6 +1,11 @@
 package com.example.servicedb.service;
 
+import com.example.servicedb.dto.ReviewDTO;
+import com.example.servicedb.dto.UserDTO;
+import com.example.servicedb.dto.FilmDTO;
 import com.example.servicedb.model.Review;
+import com.example.servicedb.model.User;
+import com.example.servicedb.model.Film;
 import com.example.servicedb.repository.ReviewRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -8,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -15,14 +21,14 @@ import java.util.Optional;
 public class ReviewService {
     private final ReviewRepository reviewRepository;
 
-    public List<Review> getAllReviews() {
+    public List<ReviewDTO> getAllReviews() {
         log.info("Fetching all reviews from repository");
         List<Review> reviews = reviewRepository.findAll();
         log.debug("Retrieved {} reviews", reviews.size());
-        return reviews;
+        return reviews.stream().map(this::mapToDTO).collect(Collectors.toList());
     }
 
-    public Optional<Review> getReviewById(Long id) {
+    public Optional<ReviewDTO> getReviewById(Long id) {
         log.info("Fetching review with ID: {}", id);
         Optional<Review> review = reviewRepository.findById(id);
         if (review.isPresent()) {
@@ -30,33 +36,41 @@ public class ReviewService {
         } else {
             log.warn("Review with ID {} not found", id);
         }
-        return review;
+        return review.map(this::mapToDTO);
     }
 
-    public Review createReview(Review review) {
-        log.info("Creating review with rating: {}", review.getRating());
+    public ReviewDTO createReview(ReviewDTO reviewDTO) {
+        log.info("Creating review with rating: {}", reviewDTO.getRating());
+        Review review = mapToEntity(reviewDTO);
         Review savedReview = reviewRepository.save(review);
         log.debug("Created review with ID: {}", savedReview.getId());
-        return savedReview;
+        return mapToDTO(savedReview);
     }
 
-    public Review updateReview(Long id, Review reviewDetails) {
+    public ReviewDTO updateReview(Long id, ReviewDTO reviewDTO) {
         log.info("Updating review with ID: {}", id);
         Review review = reviewRepository.findById(id)
                 .orElseThrow(() -> {
                     log.warn("Review with ID {} not found for update", id);
                     return new RuntimeException("Review not found with ID: " + id);
                 });
-        review.setRating(reviewDetails.getRating());
-        review.setNumberOfLikes(reviewDetails.getNumberOfLikes());
-        review.setNumberOfDislikes(reviewDetails.getNumberOfDislikes());
-        review.setText(reviewDetails.getText());
-        review.setPublicationDate(reviewDetails.getPublicationDate());
-        review.setUser(reviewDetails.getUser());
-        review.setFilm(reviewDetails.getFilm());
+        review.setRating(reviewDTO.getRating());
+        review.setNumberOfLikes(reviewDTO.getNumberOfLikes());
+        review.setNumberOfDislikes(reviewDTO.getNumberOfDislikes());
+        review.setText(reviewDTO.getText());
+        review.setPublicationDate(reviewDTO.getPublicationDate());
+        User user = new User();
+        user.setId(reviewDTO.getUser().getId());
+        user.setEmail(reviewDTO.getUser().getEmail());
+        user.setName(reviewDTO.getUser().getName());
+        review.setUser(user);
+        Film film = new Film();
+        film.setId(reviewDTO.getFilm().getId());
+        film.setTitle(reviewDTO.getFilm().getTitle());
+        review.setFilm(film);
         Review updatedReview = reviewRepository.save(review);
         log.debug("Updated review with ID: {}", updatedReview.getId());
-        return updatedReview;
+        return mapToDTO(updatedReview);
     }
 
     public void deleteReview(Long id) {
@@ -67,5 +81,45 @@ public class ReviewService {
         }
         reviewRepository.deleteById(id);
         log.debug("Deleted review with ID: {}", id);
+    }
+
+    private ReviewDTO mapToDTO(Review review) {
+        ReviewDTO dto = new ReviewDTO();
+        dto.setId(review.getId());
+        dto.setRating(review.getRating());
+        dto.setNumberOfLikes(review.getNumberOfLikes());
+        dto.setNumberOfDislikes(review.getNumberOfDislikes());
+        dto.setText(review.getText());
+        dto.setPublicationDate(review.getPublicationDate());
+        UserDTO userDTO = new UserDTO();
+        userDTO.setId(review.getUser().getId());
+        userDTO.setEmail(review.getUser().getEmail());
+        userDTO.setName(review.getUser().getName());
+        dto.setUser(userDTO);
+        FilmDTO filmDTO = new FilmDTO();
+        filmDTO.setId(review.getFilm().getId());
+        filmDTO.setTitle(review.getFilm().getTitle());
+        dto.setFilm(filmDTO);
+        return dto;
+    }
+
+    private Review mapToEntity(ReviewDTO reviewDTO) {
+        Review review = new Review();
+        review.setId(reviewDTO.getId());
+        review.setRating(reviewDTO.getRating());
+        review.setNumberOfLikes(reviewDTO.getNumberOfLikes());
+        review.setNumberOfDislikes(reviewDTO.getNumberOfDislikes());
+        review.setText(reviewDTO.getText());
+        review.setPublicationDate(reviewDTO.getPublicationDate());
+        User user = new User();
+        user.setId(reviewDTO.getUser().getId());
+        user.setEmail(reviewDTO.getUser().getEmail());
+        user.setName(reviewDTO.getUser().getName());
+        review.setUser(user);
+        Film film = new Film();
+        film.setId(reviewDTO.getFilm().getId());
+        film.setTitle(reviewDTO.getFilm().getTitle());
+        review.setFilm(film);
+        return review;
     }
 }

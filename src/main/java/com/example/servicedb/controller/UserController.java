@@ -1,6 +1,6 @@
 package com.example.servicedb.controller;
 
-import com.example.servicedb.model.User;
+import com.example.servicedb.dto.UserDTO;
 import com.example.servicedb.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -28,9 +28,9 @@ public class UserController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Successfully retrieved list of users")
     })
-    public List<User> getAllUsers() {
+    public List<UserDTO> getAllUsers() {
         log.info("Fetching all users");
-        List<User> users = userService.getAllUsers();
+        List<UserDTO> users = userService.getAllUsers();
         log.debug("Retrieved {} users", users.size());
         return users;
     }
@@ -41,9 +41,9 @@ public class UserController {
             @ApiResponse(responseCode = "200", description = "Successfully retrieved user"),
             @ApiResponse(responseCode = "404", description = "User not found")
     })
-    public ResponseEntity<User> getUserById(@Parameter(description = "ID of the user") @PathVariable Long id) {
+    public ResponseEntity<UserDTO> getUserById(@Parameter(description = "ID of the user") @PathVariable Long id) {
         log.info("Fetching user with ID: {}", id);
-        Optional<User> user = userService.getUserById(id);
+        Optional<UserDTO> user = userService.getUserById(id);
         if (user.isPresent()) {
             log.debug("Found user: {}", user.get().getName());
             return ResponseEntity.ok(user.get());
@@ -56,11 +56,12 @@ public class UserController {
     @PostMapping
     @Operation(summary = "Create a new user", description = "Creates a new user")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "User created successfully")
+            @ApiResponse(responseCode = "200", description = "User created successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid user data")
     })
-    public User createUser(@RequestBody User user) {
-        log.info("Creating new user: {}", user.getName());
-        User createdUser = userService.createUser(user);
+    public UserDTO createUser(@RequestBody UserDTO userDTO) {
+        log.info("Creating new user: {}", userDTO.getName());
+        UserDTO createdUser = userService.createUser(userDTO);
         log.debug("Created user with ID: {}", createdUser.getId());
         return createdUser;
     }
@@ -69,11 +70,12 @@ public class UserController {
     @Operation(summary = "Update a user", description = "Updates an existing user by ID")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "User updated successfully"),
-            @ApiResponse(responseCode = "404", description = "User not found")
+            @ApiResponse(responseCode = "404", description = "User not found"),
+            @ApiResponse(responseCode = "400", description = "Invalid user data")
     })
-    public ResponseEntity<User> updateUser(@Parameter(description = "ID of the user to update") @PathVariable Long id, @RequestBody User user) {
+    public ResponseEntity<UserDTO> updateUser(@Parameter(description = "ID of the user to update") @PathVariable Long id, @RequestBody UserDTO userDTO) {
         log.info("Updating user with ID: {}", id);
-        User updatedUser = userService.updateUser(id, user);
+        UserDTO updatedUser = userService.updateUser(id, userDTO);
         log.debug("Updated user: {}", updatedUser.getName());
         return ResponseEntity.ok(updatedUser);
     }

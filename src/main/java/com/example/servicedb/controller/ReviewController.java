@@ -1,6 +1,6 @@
 package com.example.servicedb.controller;
 
-import com.example.servicedb.model.Review;
+import com.example.servicedb.dto.ReviewDTO;
 import com.example.servicedb.service.ReviewService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -28,9 +28,9 @@ public class ReviewController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Successfully retrieved list of reviews")
     })
-    public List<Review> getAllReviews() {
+    public List<ReviewDTO> getAllReviews() {
         log.info("Fetching all reviews");
-        List<Review> reviews = reviewService.getAllReviews();
+        List<ReviewDTO> reviews = reviewService.getAllReviews();
         log.debug("Retrieved {} reviews", reviews.size());
         return reviews;
     }
@@ -41,9 +41,9 @@ public class ReviewController {
             @ApiResponse(responseCode = "200", description = "Successfully retrieved review"),
             @ApiResponse(responseCode = "404", description = "Review not found")
     })
-    public ResponseEntity<Review> getReviewById(@Parameter(description = "ID of the review") @PathVariable Long id) {
+    public ResponseEntity<ReviewDTO> getReviewById(@Parameter(description = "ID of the review") @PathVariable Long id) {
         log.info("Fetching review with ID: {}", id);
-        Optional<Review> review = reviewService.getReviewById(id);
+        Optional<ReviewDTO> review = reviewService.getReviewById(id);
         if (review.isPresent()) {
             log.debug("Found review with ID: {}", id);
             return ResponseEntity.ok(review.get());
@@ -56,11 +56,12 @@ public class ReviewController {
     @PostMapping
     @Operation(summary = "Create a new review", description = "Creates a new review")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Review created successfully")
+            @ApiResponse(responseCode = "200", description = "Review created successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid review data")
     })
-    public Review createReview(@RequestBody Review review) {
+    public ReviewDTO createReview(@RequestBody ReviewDTO reviewDTO) {
         log.info("Creating new review");
-        Review createdReview = reviewService.createReview(review);
+        ReviewDTO createdReview = reviewService.createReview(reviewDTO);
         log.debug("Created review with ID: {}", createdReview.getId());
         return createdReview;
     }
@@ -69,11 +70,12 @@ public class ReviewController {
     @Operation(summary = "Update a review", description = "Updates an existing review by ID")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Review updated successfully"),
-            @ApiResponse(responseCode = "404", description = "Review not found")
+            @ApiResponse(responseCode = "404", description = "Review not found"),
+            @ApiResponse(responseCode = "400", description = "Invalid review data")
     })
-    public ResponseEntity<Review> updateReview(@Parameter(description = "ID of the review to update") @PathVariable Long id, @RequestBody Review review) {
+    public ResponseEntity<ReviewDTO> updateReview(@Parameter(description = "ID of the review to update") @PathVariable Long id, @RequestBody ReviewDTO reviewDTO) {
         log.info("Updating review with ID: {}", id);
-        Review updatedReview = reviewService.updateReview(id, review);
+        ReviewDTO updatedReview = reviewService.updateReview(id, reviewDTO);
         log.debug("Updated review with ID: {}", updatedReview.getId());
         return ResponseEntity.ok(updatedReview);
     }
