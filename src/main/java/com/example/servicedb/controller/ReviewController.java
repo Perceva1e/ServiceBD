@@ -2,6 +2,12 @@ package com.example.servicedb.controller;
 
 import com.example.servicedb.model.Review;
 import com.example.servicedb.service.ReviewService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -11,26 +17,77 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/reviews")
+@Slf4j
+@Tag(name = "Review API", description = "Endpoints for managing reviews")
 public class ReviewController {
     @Autowired
     private ReviewService reviewService;
 
     @GetMapping
-    public List<Review> getAllReviews() { return reviewService.getAllReviews(); }
+    @Operation(summary = "Get all reviews", description = "Retrieves a list of all reviews")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Successfully retrieved list of reviews")
+    })
+    public List<Review> getAllReviews() {
+        log.info("Fetching all reviews");
+        List<Review> reviews = reviewService.getAllReviews();
+        log.debug("Retrieved {} reviews", reviews.size());
+        return reviews;
+    }
+
     @GetMapping("/{id}")
-    public ResponseEntity<Review> getReviewById(@PathVariable Long id) {
+    @Operation(summary = "Get review by ID", description = "Retrieves a review by its ID")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Successfully retrieved review"),
+            @ApiResponse(responseCode = "404", description = "Review not found")
+    })
+    public ResponseEntity<Review> getReviewById(@Parameter(description = "ID of the review") @PathVariable Long id) {
+        log.info("Fetching review with ID: {}", id);
         Optional<Review> review = reviewService.getReviewById(id);
-        return review.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+        if (review.isPresent()) {
+            log.debug("Found review with ID: {}", id);
+            return ResponseEntity.ok(review.get());
+        } else {
+            log.warn("Review with ID {} not found", id);
+            return ResponseEntity.notFound().build();
+        }
     }
+
     @PostMapping
-    public Review createReview(@RequestBody Review review) { return reviewService.createReview(review); }
-    @PutMapping("/{id}")
-    public ResponseEntity<Review> updateReview(@PathVariable Long id, @RequestBody Review review) {
-        return ResponseEntity.ok(reviewService.updateReview(id, review));
+    @Operation(summary = "Create a new review", description = "Creates a new review")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Review created successfully")
+    })
+    public Review createReview(@RequestBody Review review) {
+        log.info("Creating new review");
+        Review createdReview = reviewService.createReview(review);
+        log.debug("Created review with ID: {}", createdReview.getId());
+        return createdReview;
     }
+
+    @PutMapping("/{id}")
+    @Operation(summary = "Update a review", description = "Updates an existing review by ID")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Review updated successfully"),
+            @ApiResponse(responseCode = "404", description = "Review not found")
+    })
+    public ResponseEntity<Review> updateReview(@Parameter(description = "ID of the review to update") @PathVariable Long id, @RequestBody Review review) {
+        log.info("Updating review with ID: {}", id);
+        Review updatedReview = reviewService.updateReview(id, review);
+        log.debug("Updated review with ID: {}", updatedReview.getId());
+        return ResponseEntity.ok(updatedReview);
+    }
+
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteReview(@PathVariable Long id) {
+    @Operation(summary = "Delete a review", description = "Deletes a review by ID")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "Review deleted successfully"),
+            @ApiResponse(responseCode = "404", description = "Review not found")
+    })
+    public ResponseEntity<Void> deleteReview(@Parameter(description = "ID of the review to delete") @PathVariable Long id) {
+        log.info("Deleting review with ID: {}", id);
         reviewService.deleteReview(id);
+        log.debug("Deleted review with ID: {}", id);
         return ResponseEntity.noContent().build();
     }
 }
