@@ -57,7 +57,7 @@ public class ReviewService {
         review.setRating(reviewDTO.getRating());
         review.setNumberOfLikes(reviewDTO.getNumberOfLikes());
         review.setNumberOfDislikes(reviewDTO.getNumberOfDislikes());
-        review.setText(reviewDTO.getText());
+        review.setReviewText(reviewDTO.getReviewText());
         review.setPublicationDate(reviewDTO.getPublicationDate());
         User user = new User();
         user.setId(reviewDTO.getUser().getId());
@@ -89,7 +89,7 @@ public class ReviewService {
         dto.setRating(review.getRating());
         dto.setNumberOfLikes(review.getNumberOfLikes());
         dto.setNumberOfDislikes(review.getNumberOfDislikes());
-        dto.setText(review.getText());
+        dto.setReviewText(review.getReviewText());
         dto.setPublicationDate(review.getPublicationDate());
         UserDTO userDTO = new UserDTO();
         userDTO.setId(review.getUser().getId());
@@ -109,7 +109,7 @@ public class ReviewService {
         review.setRating(reviewDTO.getRating());
         review.setNumberOfLikes(reviewDTO.getNumberOfLikes());
         review.setNumberOfDislikes(reviewDTO.getNumberOfDislikes());
-        review.setText(reviewDTO.getText());
+        review.setReviewText(reviewDTO.getReviewText());
         review.setPublicationDate(reviewDTO.getPublicationDate());
         User user = new User();
         user.setId(reviewDTO.getUser().getId());

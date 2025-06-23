@@ -1,27 +1,27 @@
-    package com.example.servicedb.model;
+package com.example.servicedb.model;
 
-    import jakarta.persistence.*;
-    import lombok.Data;
+import jakarta.persistence.*;
+import lombok.Data;
 
-    import java.util.List;
+import java.util.List;
 
-    @Entity
-    @Table(name = "app_user")
-    @Data
-    public class User {
-        @Id
-        @GeneratedValue(strategy = GenerationType.IDENTITY)
-        private Long id;
+@Entity
+@Table(name = "app_user")
+@Data
+public class User {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-        @Column(nullable = false)
-        private String email;
+    @Column(nullable = false)
+    private String email;
 
-        @Column(nullable = false)
-        private String name;
+    @Column(nullable = false)
+    private String name;
 
-        @Column(name = "hashed_password", nullable = false)
-        private String hashedPassword;
+    @Column(name = "hashed_password", nullable = false)
+    private String hashedPassword;
 
-        @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-        private List<Review> reviews;
-    }
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Review> reviews;
+}

@@ -22,7 +22,8 @@ public class Review {
     @Column(name = "number_of_dislikes")
     private int numberOfDislikes;
 
-    private String text;
+    @Column(name = "review_text")
+    private String reviewText;
 
     @Column(name = "publication_date")
     private LocalDate publicationDate;
