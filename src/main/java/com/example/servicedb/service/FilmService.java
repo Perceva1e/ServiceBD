@@ -1,8 +1,6 @@
 package com.example.servicedb.service;
 
-import com.example.servicedb.dto.FilmDTO;
-import com.example.servicedb.dto.FilmDataDTO;
-import com.example.servicedb.dto.GenreDTO;
+import com.example.servicedb.dto.*;
 import com.example.servicedb.model.Film;
 import com.example.servicedb.model.Genre;
 import com.example.servicedb.repository.FilmRepository;
@@ -110,6 +108,24 @@ public class FilmService {
                     .map(this::convertToGenreDTO)
                     .collect(Collectors.toList());
             dto.setGenres(genreDTOs);
+        }
+
+        if (film.getPersonnel() != null) {
+            List<PersonnelDTO> personnelDTOs = film.getPersonnel().stream()
+                    .map(personnel -> {
+                        PersonnelDTO personnelDTO = new PersonnelDTO();
+                        personnelDTO.setId(personnel.getId());
+                        personnelDTO.setPosition(personnel.getPosition());
+                        PersonDTO personDTO = new PersonDTO();
+                        personDTO.setId(personnel.getPerson().getId());
+                        personDTO.setName(personnel.getPerson().getName());
+                        personDTO.setBiography(personnel.getPerson().getBiography());
+                        personDTO.setPhotograph(personnel.getPerson().getPhotograph());
+                        personnelDTO.setPerson(personDTO);
+                        return personnelDTO;
+                    })
+                    .collect(Collectors.toList());
+            dto.setPersonnel(personnelDTOs);
         }
 
         return dto;

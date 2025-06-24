@@ -14,4 +14,5 @@ public class FilmDTO {
     private Double rating;
     private FilmDataDTO filmData;
     private List<GenreDTO> genres;
+    private List<PersonnelDTO> personnel;
 }
